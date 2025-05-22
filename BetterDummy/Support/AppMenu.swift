@@ -18,7 +18,10 @@ class AppMenu {
   func setupMenu() {
     self.statusBarItem = NSStatusBar.system.statusItem(withLength: CGFloat(NSStatusItem.variableLength))
     if let button = self.statusBarItem.button {
-      button.image = NSImage(named: "status")
+      if let image = NSImage(named: "status") {
+        image.isTemplate = true  // This makes the image automatically adapt to dark mode
+        button.image = image
+      }
     }
     self.statusBarItem.menu = self.appMenu
     self.statusBarItem.isVisible = !prefs.bool(forKey: PrefKey.hideMenuIcon.rawValue)
@@ -75,7 +78,10 @@ class AppMenu {
   func populateSettingsMenu() {
     self.emptyMenu(self.settingsMenu)
 
-    let attrs: [NSAttributedString.Key: Any] = [.foregroundColor: NSColor.headerTextColor, .font: NSFont.boldSystemFont(ofSize: 13)]
+    let attrs: [NSAttributedString.Key: Any] = [
+      .foregroundColor: NSColor.labelColor,
+      .font: NSFont.boldSystemFont(ofSize: 13)
+    ]
 
     let generalHeaderItem = NSMenuItem()
     generalHeaderItem.attributedTitle = NSAttributedString(string: "General settings", attributes: attrs)
@@ -170,18 +176,27 @@ class AppMenu {
   func getResolutionSubmenuItem(_ dummy: Dummy, _ number: Int) -> NSMenuItem? {
     let resolutionMenu = NSMenu()
     if let resolutions = DisplayManager.getDisplayById(dummy.displayIdentifier)?.resolutions {
-      let attrs: [NSAttributedString.Key: Any] = [.foregroundColor: NSColor.headerTextColor, .font: NSFont.boldSystemFont(ofSize: 13)]
+      let attrs: [NSAttributedString.Key: Any] = [
+        .foregroundColor: NSColor.labelColor,
+        .font: NSFont.boldSystemFont(ofSize: 13)
+      ]
       let hidpiHeaderItem = NSMenuItem()
-      hidpiHeaderItem.attributedTitle = NSAttributedString(string: "HiDPI resolutions", attributes: attrs)
+      hidpiHeaderItem.attributedTitle = NSAttributedString(string: "HiDPI resolutions", attributes: [
+        .foregroundColor: NSColor.labelColor,
+        .font: NSFont.boldSystemFont(ofSize: 13)
+      ])
       resolutionMenu.addItem(hidpiHeaderItem)
       for resolution in resolutions.sorted(by: { $0.0 < $1.0 }) where resolution.value.height >= 720 && resolution.value.hiDPI == true {
         resolutionMenu.addItem(self.checkmarkedMenuItem(checked: resolution.value.isActive, title: "\(resolution.value.width)x\(resolution.value.height)", tag: number * 256 * 256 + resolution.key, action: #selector(app.dummyResolution(_:)), radio: true))
       }
       if !prefs.bool(forKey: PrefKey.hideLowResolutionOption.rawValue) {
         resolutionMenu.addItem(NSMenuItem.separator())
-        let hidpiHeaderItem = NSMenuItem()
-        hidpiHeaderItem.attributedTitle = NSAttributedString(string: "Low resolutions", attributes: attrs)
-        resolutionMenu.addItem(hidpiHeaderItem)
+        let lowResHeaderItem = NSMenuItem()
+        lowResHeaderItem.attributedTitle = NSAttributedString(string: "Low resolutions", attributes: [
+          .foregroundColor: NSColor.labelColor,
+          .font: NSFont.boldSystemFont(ofSize: 13)
+        ])
+        resolutionMenu.addItem(lowResHeaderItem)
         for resolution in resolutions.sorted(by: { $0.0 < $1.0 }) where resolution.value.height >= 720 && resolution.value.hiDPI == false {
           resolutionMenu.addItem(self.checkmarkedMenuItem(checked: resolution.value.isActive, title: "\(resolution.value.width)x\(resolution.value.height) (low)", tag: number * 256 * 256 + resolution.key, action: #selector(app.dummyResolution(_:)), radio: true))
         }
@@ -234,7 +249,7 @@ class AppMenu {
   func addDummyToMenu(_ dummy: Dummy, _ number: Int) {
     let dummyHeaderItem = NSMenuItem()
     let attributedHeader = NSMutableAttributedString()
-    var attrs: [NSAttributedString.Key: Any] = [.foregroundColor: NSColor.headerTextColor, .font: NSFont.boldSystemFont(ofSize: 13)]
+    var attrs: [NSAttributedString.Key: Any] = [.foregroundColor: NSColor.labelColor, .font: NSFont.boldSystemFont(ofSize: 13)]
     attributedHeader.append(NSAttributedString(string: "\(dummy.getName())", attributes: attrs))
     attrs = [.foregroundColor: NSColor.systemGray, .font: NSFont.systemFont(ofSize: 13)]
     attributedHeader.append(NSAttributedString(string: " (\(dummy.getSerialNumber()))", attributes: attrs))

@@ -20,6 +20,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
 
   func applicationDidFinishLaunching(_: Notification) {
     app = self
+    
+    // Set the app to respect system appearance
+    NSApp.appearance = NSAppearance(named: .aqua)
+    
     DummyManager.updateDummyDefinitions()
     self.menu.setupMenu()
     self.setDefaultPrefs()
@@ -35,19 +39,21 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
   }
 
   func applicationShouldHandleReopen(_: NSApplication, hasVisibleWindows _: Bool) -> Bool {
-    let alert = NSAlert()
-    alert.alertStyle = .informational
-    alert.messageText = "BetterDummy is already running!"
     if prefs.bool(forKey: PrefKey.hideMenuIcon.rawValue) || self.menu.statusBarItem.isVisible == false {
       self.menu.statusBarItem.isVisible = true
       prefs.set(true, forKey: PrefKey.hideMenuIcon.rawValue)
       DummyManager.storeDummiesToPrefs()
       self.menu.populateSettingsMenu()
-      alert.informativeText = "The menu icon was hidden but it is now set to visible. You can hide it again in Settings."
+      showAlert(
+        title: "BetterDummy is already running!",
+        message: "The menu icon was hidden but it is now set to visible. You can hide it again in Settings."
+      )
     } else {
-      alert.informativeText = "To configure the app, use the BetterDummy menu icon in the macOS menu bar!"
+      showAlert(
+        title: "BetterDummy is already running!",
+        message: "To configure the app, use the BetterDummy menu icon in the macOS menu bar!"
+      )
     }
-    alert.runModal()
     return true
   }
 
@@ -520,5 +526,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, SPUUpdaterDelegate {
         dummy.disconnect(sleepDisconnect: true)
       }
     }
+  }
+
+  func showAlert(title: String, message: String, style: NSAlert.Style = .informational) {
+    let alert = NSAlert()
+    alert.alertStyle = style
+    alert.messageText = title
+    alert.informativeText = message
+    
+    // Ensure alert window respects system appearance
+    alert.window.appearance = NSApp.appearance
+    
+    alert.runModal()
   }
 }
